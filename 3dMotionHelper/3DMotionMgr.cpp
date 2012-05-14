@@ -204,12 +204,12 @@ bool C3DMotionMgr::Add2Dest3DMotion(int nMount, int nLook, int nWeapon, int nAct
 			itWeaponVec = m_mapWeaponTrans.find(nWeapon);
 		}
 
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		std::vector<std::string>::const_iterator itWeaponStr = itWeaponVec->second.begin();
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		std::vector<std::string>::const_iterator itWeaponStr;
+		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 		for (; itActStr != itActVec->second.end(); ++itActStr) {
-			for (; itWeaponStr != itWeaponVec->second.end(); ++itWeaponStr) {
+			for (itWeaponStr = itWeaponVec->second.begin(); itWeaponStr != itWeaponVec->second.end(); ++itWeaponStr) {
 				strFile = strPath +*itWeaponStr;
 				strFile += "/";
 				strFile += *itActStr;
@@ -264,7 +264,7 @@ void C3DMotionMgr::LoadPathInfo(const char *pszFile, OUT std::map<int, std::vect
 			continue;
 		}
 
-		_snprintf(szTmp, sizeof(szTmp), "%d", nIndex);
+		_snprintf(szTmp, sizeof(szTmp), "%03d", nIndex);
 		rMapTrans[nIndex].push_back(szTmp);
 
 		for (pPos = strtok(pPos + 1, szSeps); pPos; pPos = strtok(NULL, szSeps)) {
@@ -320,4 +320,41 @@ bool C3DMotionMgr::Save3DMotionIni(std::string strFilePath, const std::map<__int
 bool C3DMotionMgr::IsMonster(int nLook) const
 {
 	return(nLook >= 100);
+}
+
+// ============================================================================
+// ==============================================================================
+bool C3DMotionMgr::AddWeaponType(int nWeaponType)
+{
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	std::map<int, int>::const_iterator itMount;
+	std::map<int, int>::const_iterator itLook;
+	std::map<int, int>::const_iterator itActType;
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	for (itLook = m_mapLook.begin(); itLook != m_mapLook.end(); ++itLook) {
+		if (this->IsMonster(itLook->first)) {
+			continue;
+		} else {
+			for (itMount = m_mapMount.begin(); itMount != m_mapMount.end(); ++itMount) {
+				for (itActType = m_mapAct.begin(); itActType != m_mapAct.end(); ++itActType) {
+					this->Add2Dest3DMotion(itMount->first, itLook->first, nWeaponType, itActType->first);
+				}
+			}
+		}
+	}
+
+	//~~~~~~~~~~~~~~~~~~~~~~~
+	char szWorkDir[MAX_STRING];
+	//~~~~~~~~~~~~~~~~~~~~~~~
+
+	::GetCurrentDirectory(sizeof(szWorkDir), szWorkDir);
+
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	std::string strDir = szWorkDir;
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	Save3DMotionIni((strDir + "\\testWeapon.txt").c_str(), m_mapDest3DMotion);
+
+	return true;
 }

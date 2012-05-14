@@ -110,6 +110,7 @@ BOOL CMy3dMotionHelperDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);	// Set small icon
 
 	SetLogEdit(&m_edtLog);
+	((CButton *)GetDlgItem(IDC_RADIO_ACTION))->SetCheck(TRUE);
 
 	// TODO: Add extra initialization here
 	return TRUE;				// return TRUE unless you set the focus to a control
@@ -184,6 +185,7 @@ void CMy3dMotionHelperDlg::OnBnClickedBtnAdd()
 	C3DMotionMgr::GetInstance().SetPath(m_cstrPath);
 	switch (this->GetMode()) {
 	case MODE_ACTTYPE:	C3DMotionMgr::GetInstance().AddActType(m_nData); break;
+	case MODE_WEAPON:	C3DMotionMgr::GetInstance().AddWeaponType(m_nData); break;
 	default:			break;
 	}
 }

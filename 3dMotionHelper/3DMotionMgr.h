@@ -16,6 +16,7 @@ public:
 	void SetPath(const char *pszPath);
 	bool Ana(const char *pszFile);
 	bool AddActType(int nActType);
+	bool AddWeaponType(int nWeaponType);
 	bool Add2Dest3DMotion(int nMount, int nLook, int nWeapon, int nActionType);
 	bool Save3DMotionIni(std::string strFilePath, const std::map<__int64, std::string> &mapData);
 private:
