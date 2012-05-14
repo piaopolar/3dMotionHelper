@@ -19,8 +19,8 @@ C3DMotionMgr::C3DMotionMgr(void)
 	std::string strDir = szWorkDir;
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	LoadPathInfo((strDir + "\\ini\\WeaponTransSet.ini").c_str(), m_mapWeaponTrans);
-	LoadPathInfo((strDir + "\\ini\\ActTypeTransSet.ini").c_str(), m_mapActTypeTrans);
+	LoadPathInfo((strDir + "\\ini\\WeaponTransSet.ini").c_str(), m_mapWeaponTrans, false);
+	LoadPathInfo((strDir + "\\ini\\ActTypeTransSet.ini").c_str(), m_mapActTypeTrans, true);
 }
 
 // ============================================================================
@@ -199,9 +199,7 @@ bool C3DMotionMgr::Add2Dest3DMotion(int nMount, int nLook, int nWeapon, int nAct
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 		if (itWeaponVec == m_mapWeaponTrans.end()) {
-			_snprintf(szTmp, sizeof(szTmp), "%03d", nWeapon);
-			m_mapWeaponTrans[nWeapon].push_back(szTmp);
-			itWeaponVec = m_mapWeaponTrans.find(nWeapon);
+			return false;
 		}
 
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -236,7 +234,9 @@ bool C3DMotionMgr::Add2Dest3DMotion(int nMount, int nLook, int nWeapon, int nAct
 
 // ============================================================================
 // ==============================================================================
-void C3DMotionMgr::LoadPathInfo(const char *pszFile, OUT std::map<int, std::vector<std::string> > &rMapTrans)
+void C3DMotionMgr::LoadPathInfo(const char *pszFile,
+								OUT std::map<int, std::vector<std::string> > &rMapTrans,
+								bool bAddSelf)
 {
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	FILE *pFile = fopen(pszFile, "r");
@@ -264,8 +264,10 @@ void C3DMotionMgr::LoadPathInfo(const char *pszFile, OUT std::map<int, std::vect
 			continue;
 		}
 
-		_snprintf(szTmp, sizeof(szTmp), "%03d", nIndex);
-		rMapTrans[nIndex].push_back(szTmp);
+		if (bAddSelf) {
+			_snprintf(szTmp, sizeof(szTmp), "%03d", nIndex);
+			rMapTrans[nIndex].push_back(szTmp);
+		}
 
 		for (pPos = strtok(pPos + 1, szSeps); pPos; pPos = strtok(NULL, szSeps)) {
 			rMapTrans[nIndex].push_back(pPos);

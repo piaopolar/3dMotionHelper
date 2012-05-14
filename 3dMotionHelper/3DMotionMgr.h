@@ -12,7 +12,7 @@ public:
 	C3DMotionMgr(void);
 	~C3DMotionMgr(void);
 
-	void LoadPathInfo(const char *pszFile, OUT std::map<int, std::vector<std::string>>& rMapPath);
+	void LoadPathInfo(const char *pszFile, OUT std::map<int, std::vector<std::string>>& rMapPath, bool bAddSelf = true);
 	void SetPath(const char *pszPath);
 	bool Ana(const char *pszFile);
 	bool AddActType(int nActType);
