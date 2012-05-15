@@ -22,6 +22,7 @@ C3DMotionMgr::C3DMotionMgr(void)
 	LoadPathInfo((strDir + "\\ini\\WeaponTransSet.ini").c_str(), m_mapWeaponTrans, false);
 	LoadPathInfo((strDir + "\\ini\\ActTypeTransSet.ini").c_str(), m_mapActTypeTrans, true);
 	LoadPathInfo((strDir + "\\ini\\LookTransSet.ini").c_str(), m_mapLookTrans, true);
+	LoadPathInfo((strDir + "\\ini\\MountTransSet.ini").c_str(), m_mapMountTypeTrans, true);
 }
 
 // ============================================================================
@@ -145,7 +146,7 @@ bool C3DMotionMgr::AddActType(int nActType)
 // ==============================================================================
 bool C3DMotionMgr::Add2Dest3DMotion(int nMount, int nLook, int nWeapon, int nActionType)
 {
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	__int64 i64Index = (__int64) 10000000000 *
 		nMount +
 		(__int64) 10000000 *
@@ -156,83 +157,94 @@ bool C3DMotionMgr::Add2Dest3DMotion(int nMount, int nLook, int nWeapon, int nAct
 	std::string strPath;
 	char szTmp[MAX_STRING];
 	bool bMonster = this->IsMonster(nLook);
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	std::map<int, std::vector<std::string> >::const_iterator itMountVec = m_mapMountTypeTrans.find(nMount);
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	if (1030000110 == i64Index) {
-		OutputDebugString("break here");
+	if (itMountVec == m_mapMountTypeTrans.end()) {
+		_snprintf(szTmp, sizeof(szTmp), "%d", nMount);
+		m_mapMountTypeTrans[nMount].push_back(szTmp);
+		itMountVec = m_mapMountTypeTrans.find(nMount);
 	}
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	std::map<int, std::vector<std::string> >::const_iterator itLookVec = m_mapLookTrans.find(nLook);
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	std::vector<std::string>::const_iterator itMountStr = itMountVec->second.begin();
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	if (itLookVec == m_mapLookTrans.end()) {
-		_snprintf(szTmp, sizeof(szTmp), "%03d", nLook);
-		m_mapLookTrans[nLook].push_back(szTmp);
-		itLookVec = m_mapLookTrans.find(nLook);
-	}
+	for (; itMountStr != itMountVec->second.end(); ++itMountStr) {
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	std::vector<std::string>::const_iterator itLookStr = itLookVec->second.begin();
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		std::map<int, std::vector<std::string> >::const_iterator itLookVec = m_mapLookTrans.find(nLook);
+		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	for (; itLookStr != itLookVec->second.end(); ++itLookStr) {
-		if (bMonster) {
-			_snprintf(szTmp, sizeof(szTmp), "c3/monster/%s/", itLookStr->c_str());
-		} else {
-			_snprintf(szTmp, sizeof(szTmp), "c3/%d%s/", nMount, itLookStr->c_str());
+		if (itLookVec == m_mapLookTrans.end()) {
+			_snprintf(szTmp, sizeof(szTmp), "%03d", nLook);
+			m_mapLookTrans[nLook].push_back(szTmp);
+			itLookVec = m_mapLookTrans.find(nLook);
 		}
 
-		strPath = szTmp;
+		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		std::vector<std::string>::const_iterator itLookStr = itLookVec->second.begin();
+		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		std::map<int, std::vector<std::string> >::const_iterator itActVec = m_mapActTypeTrans.find(nActionType);
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-		if (itActVec == m_mapActTypeTrans.end()) {
-			_snprintf(szTmp, sizeof(szTmp), "%03d", nActionType);
-			m_mapActTypeTrans[nActionType].push_back(szTmp);
-			itActVec = m_mapActTypeTrans.find(nActionType);
-		}
-
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		std::vector<std::string>::const_iterator itActStr = itActVec->second.begin();
-		std::string strFile;
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-		if (!bMonster) {
-
-			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			std::map<int, std::vector<std::string> >::const_iterator itWeaponVec = m_mapWeaponTrans.find(nWeapon);
-			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-			if (itWeaponVec == m_mapWeaponTrans.end()) {
-				continue;
+		for (; itLookStr != itLookVec->second.end(); ++itLookStr) {
+			if (bMonster) {
+				_snprintf(szTmp, sizeof(szTmp), "c3/monster/%s/", itLookStr->c_str());
+			} else {
+				_snprintf(szTmp, sizeof(szTmp), "c3/%s%s/", itMountStr->c_str(), itLookStr->c_str());
 			}
 
-			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			std::vector<std::string>::const_iterator itWeaponStr;
-			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			strPath = szTmp;
 
-			for (; itActStr != itActVec->second.end(); ++itActStr) {
-				for (itWeaponStr = itWeaponVec->second.begin(); itWeaponStr != itWeaponVec->second.end(); ++itWeaponStr) {
-					strFile = strPath +*itWeaponStr;
-					strFile += "/";
-					strFile += *itActStr;
+			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			std::map<int, std::vector<std::string> >::const_iterator itActVec = m_mapActTypeTrans.find(nActionType);
+			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+			if (itActVec == m_mapActTypeTrans.end()) {
+				_snprintf(szTmp, sizeof(szTmp), "%03d", nActionType);
+				m_mapActTypeTrans[nActionType].push_back(szTmp);
+				itActVec = m_mapActTypeTrans.find(nActionType);
+			}
+
+			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			std::vector<std::string>::const_iterator itActStr = itActVec->second.begin();
+			std::string strFile;
+			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+			if (!bMonster) {
+
+				//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+				std::map<int, std::vector<std::string> >::const_iterator itWeaponVec = m_mapWeaponTrans.find(nWeapon);
+				//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+				if (itWeaponVec == m_mapWeaponTrans.end()) {
+					continue;
+				}
+
+				//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+				std::vector<std::string>::const_iterator itWeaponStr;
+				//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+				for (; itActStr != itActVec->second.end(); ++itActStr) {
+					for (itWeaponStr = itWeaponVec->second.begin(); itWeaponStr != itWeaponVec->second.end();
+						 ++itWeaponStr) {
+						strFile = strPath +*itWeaponStr;
+						strFile += "/";
+						strFile += *itActStr;
+						strFile += ".c3";
+						if (IsFileExist((m_strOrgEnv + strFile).c_str())) {
+							m_mapDest3DMotion[i64Index] = strFile;
+							return true;
+						}
+					}
+				}
+			} else {
+				for (; itActStr != itActVec->second.end(); ++itActStr) {
+					strFile = strPath +*itActStr;
 					strFile += ".c3";
 					if (IsFileExist((m_strOrgEnv + strFile).c_str())) {
 						m_mapDest3DMotion[i64Index] = strFile;
 						return true;
 					}
-				}
-			}
-		} else {
-			for (; itActStr != itActVec->second.end(); ++itActStr) {
-				strFile = strPath +*itActStr;
-				strFile += ".c3";
-				if (IsFileExist((m_strOrgEnv + strFile).c_str())) {
-					m_mapDest3DMotion[i64Index] = strFile;
-					return true;
 				}
 			}
 		}
@@ -395,6 +407,43 @@ bool C3DMotionMgr::AddMonsterType(int nMonsterType)
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	Save3DMotionIni((strDir + "\\testMonster.txt").c_str(), m_mapDest3DMotion);
+
+	return true;
+}
+
+// ============================================================================
+// ==============================================================================
+bool C3DMotionMgr::AddMountType(int nMountType)
+{
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	std::map<int, int>::const_iterator itLook;
+	std::map<int, int>::const_iterator itWeapon;
+	std::map<int, int>::const_iterator itActType;
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	for (itLook = m_mapLook.begin(); itLook != m_mapLook.end(); ++itLook) {
+		if (this->IsMonster(itLook->first)) {
+			continue;
+		}
+
+		for (itWeapon = m_mapWeapon.begin(); itWeapon != m_mapWeapon.end(); ++itWeapon) {
+			for (itActType = m_mapAct.begin(); itActType != m_mapAct.end(); ++itActType) {
+				this->Add2Dest3DMotion(nMountType, itLook->first, itWeapon->first, itActType->first);
+			}
+		}
+	}
+
+	//~~~~~~~~~~~~~~~~~~~~~~~
+	char szWorkDir[MAX_STRING];
+	//~~~~~~~~~~~~~~~~~~~~~~~
+
+	::GetCurrentDirectory(sizeof(szWorkDir), szWorkDir);
+
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	std::string strDir = szWorkDir;
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	Save3DMotionIni((strDir + "\\testMount.txt").c_str(), m_mapDest3DMotion);
 
 	return true;
 }
