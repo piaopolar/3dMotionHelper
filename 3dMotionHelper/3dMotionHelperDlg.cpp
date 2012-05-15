@@ -186,6 +186,7 @@ void CMy3dMotionHelperDlg::OnBnClickedBtnAdd()
 	switch (this->GetMode()) {
 	case MODE_ACTTYPE:	C3DMotionMgr::GetInstance().AddActType(m_nData); break;
 	case MODE_WEAPON:	C3DMotionMgr::GetInstance().AddWeaponType(m_nData); break;
+	case MODE_LOOK:		C3DMotionMgr::GetInstance().AddMonsterType(m_nData); break;
 	default:			break;
 	}
 }
