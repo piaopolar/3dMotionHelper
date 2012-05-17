@@ -20,9 +20,13 @@ public:
 	bool AddMountType(int nMountType);
 	bool AddWeaponType(int nWeaponType);
 	bool Add2Dest3DMotion(int nMount, int nLook, int nWeapon, int nActionType);
+	bool Add2Dest3DMotionSingle(int nMountWidthLev, int nLook, int nWeapon, int nActionType);
 	bool Save3DMotionIni(std::string strFilePath, const std::map<__int64, std::string> &mapData);
+	void ResetDestMotion(void);
 private:
 	bool IsMonster(int nLook) const;
+	bool IsMountLevAction(int nActType) const;
+	std::string GetMountLevActionFileName(int nMountLev, int nActType) const;
 private:
 	std::string m_strOrgEnv;
 	std::map<__int64, std::string> m_mapOrg3DMotion;

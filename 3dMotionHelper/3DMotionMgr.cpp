@@ -91,7 +91,7 @@ bool C3DMotionMgr::Ana(const char *pszFile)
 				OutputDebugString(szLine);
 			}
 
-			if (nActType != 713) {
+			if (!IsMountLevAction(nActType)) {
 				nMount = static_cast<int>(i64Index);
 				m_mapMount[nMount] = 1;
 			}
@@ -101,7 +101,6 @@ bool C3DMotionMgr::Ana(const char *pszFile)
 	LogInfoIn("%s info:\n Index %d  Mount %d Look %d Weapon %d ActType %d", pszFile, m_mapOrg3DMotion.size(),
 			  m_mapMount.size(), m_mapLook.size(), m_mapWeapon.size(), m_mapAct.size());
 
-	// m_mapDest3DMotion = m_mapOrg3DMotion;
 	return true;
 }
 
@@ -137,7 +136,7 @@ bool C3DMotionMgr::AddActType(int nActType)
 	std::string strDir = szWorkDir;
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	Save3DMotionIni((strDir + "\\test.txt").c_str(), m_mapDest3DMotion);
+	Save3DMotionIni((strDir + "\\testAddActType.txt").c_str(), m_mapDest3DMotion);
 
 	return true;
 }
@@ -146,9 +145,24 @@ bool C3DMotionMgr::AddActType(int nActType)
 // ==============================================================================
 bool C3DMotionMgr::Add2Dest3DMotion(int nMount, int nLook, int nWeapon, int nActionType)
 {
+	if (nMount && this->IsMountLevAction(nActionType)) {
+		for (int i = 0; i <= 12; ++i) {
+			this->Add2Dest3DMotionSingle(i * 100 + nMount, nLook, nWeapon, nActionType);
+		}
+
+		return true;
+	}
+
+	return this->Add2Dest3DMotionSingle(nMount, nLook, nWeapon, nActionType);
+}
+
+// ============================================================================
+// ==============================================================================
+bool C3DMotionMgr::Add2Dest3DMotionSingle(int nMountWidthLev, int nLook, int nWeapon, int nActionType)
+{
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	__int64 i64Index = (__int64) 10000000000 *
-		nMount +
+		nMountWidthLev +
 		(__int64) 10000000 *
 		nLook +
 		(__int64) 10000 *
@@ -157,12 +171,14 @@ bool C3DMotionMgr::Add2Dest3DMotion(int nMount, int nLook, int nWeapon, int nAct
 	std::string strPath;
 	char szTmp[MAX_STRING];
 	bool bMonster = this->IsMonster(nLook);
+	int nMount = nMountWidthLev % 100;
+	int nMoutLev = nMountWidthLev / 100;
 	std::map<int, std::vector<std::string> >::const_iterator itMountVec = m_mapMountTypeTrans.find(nMount);
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	if (itMountVec == m_mapMountTypeTrans.end()) {
 		_snprintf(szTmp, sizeof(szTmp), "%d", nMount);
-		m_mapMountTypeTrans[nMount].push_back(szTmp);
+		m_mapMountTypeTrans[nMountWidthLev].push_back(szTmp);
 		itMountVec = m_mapMountTypeTrans.find(nMount);
 	}
 
@@ -229,7 +245,13 @@ bool C3DMotionMgr::Add2Dest3DMotion(int nMount, int nLook, int nWeapon, int nAct
 						 ++itWeaponStr) {
 						strFile = strPath +*itWeaponStr;
 						strFile += "/";
-						strFile += *itActStr;
+
+						if (this->IsMountLevAction(nActionType)) {
+							strFile += this->GetMountLevActionFileName(nMoutLev, nActionType);
+						} else {
+							strFile += *itActStr;
+						}
+
 						strFile += ".c3";
 						if (IsFileExist((m_strOrgEnv + strFile).c_str())) {
 							m_mapDest3DMotion[i64Index] = strFile;
@@ -286,7 +308,12 @@ void C3DMotionMgr::LoadPathInfo(const char *pszFile,
 		}
 
 		if (bAddSelf) {
-			_snprintf(szTmp, sizeof(szTmp), "%03d", nIndex);
+			if (strstr(pszFile, "Mount")) {
+				_snprintf(szTmp, sizeof(szTmp), "%0d", nIndex);
+			} else {
+				_snprintf(szTmp, sizeof(szTmp), "%03d", nIndex);
+			}
+
 			rMapTrans[nIndex].push_back(szTmp);
 		}
 
@@ -377,7 +404,7 @@ bool C3DMotionMgr::AddWeaponType(int nWeaponType)
 	std::string strDir = szWorkDir;
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	Save3DMotionIni((strDir + "\\testWeapon.txt").c_str(), m_mapDest3DMotion);
+	Save3DMotionIni((strDir + "\\testAddWeapon.txt").c_str(), m_mapDest3DMotion);
 
 	return true;
 }
@@ -406,7 +433,7 @@ bool C3DMotionMgr::AddMonsterType(int nMonsterType)
 	std::string strDir = szWorkDir;
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	Save3DMotionIni((strDir + "\\testMonster.txt").c_str(), m_mapDest3DMotion);
+	Save3DMotionIni((strDir + "\\testAddMonster.txt").c_str(), m_mapDest3DMotion);
 
 	return true;
 }
@@ -443,7 +470,46 @@ bool C3DMotionMgr::AddMountType(int nMountType)
 	std::string strDir = szWorkDir;
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	Save3DMotionIni((strDir + "\\testMount.txt").c_str(), m_mapDest3DMotion);
+	Save3DMotionIni((strDir + "\\testAddMount.txt").c_str(), m_mapDest3DMotion);
 
 	return true;
+}
+
+// ============================================================================
+// ==============================================================================
+bool C3DMotionMgr::IsMountLevAction(int nActType) const
+{
+	return(nActType == 713);
+}
+
+// ============================================================================
+// ==============================================================================
+std::string C3DMotionMgr::GetMountLevActionFileName(int nMountLev, int nActType) const
+{
+	//~~~~~~~~~~~~~~~~~~~
+	char szTmp[MAX_STRING];
+	//~~~~~~~~~~~~~~~~~~~
+
+	_snprintf(szTmp, sizeof(szTmp), "%d", nActType);
+
+	//~~~~~~~~~~~~~~~~~~~~~~~
+	std::string strRet = szTmp;
+	//~~~~~~~~~~~~~~~~~~~~~~~
+
+	if (nMountLev >= 11) {
+		strRet += "-3";
+	} else if (nMountLev >= 9) {
+		strRet += "-2";
+	} else if (nMountLev >= 5) {
+		strRet += "-1";
+	}
+
+	return strRet;
+}
+
+// ============================================================================
+// ==============================================================================
+void C3DMotionMgr::ResetDestMotion(void)
+{
+	m_mapDest3DMotion.clear();
 }

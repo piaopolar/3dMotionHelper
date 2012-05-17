@@ -183,6 +183,7 @@ void CMy3dMotionHelperDlg::OnBnClickedBtnAdd()
 {
 	UpdateData(TRUE);
 	C3DMotionMgr::GetInstance().SetPath(m_cstrPath);
+	C3DMotionMgr::GetInstance().ResetDestMotion();
 	switch (this->GetMode()) {
 	case MODE_ACTTYPE:	C3DMotionMgr::GetInstance().AddActType(m_nData); break;
 	case MODE_WEAPON:	C3DMotionMgr::GetInstance().AddWeaponType(m_nData); break;
